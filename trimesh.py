@@ -9,13 +9,9 @@ from scipy.spatial import Delaunay
 
 FGCOLOR_RED = 0
 FGCOLOR_FIRE = 1
-FGCOLOR_ARRAY = [0,1]
-FGCOLOR = FGCOLOR_RED
 
 BGCOLOR_BLACK = 0
 BGCOLOR_WHITE = 1
-BGCOLOR_ARRAY = [0,1]
-BGCOLOR = BGCOLOR_BLACK
 
 
 def printUsage():
@@ -32,20 +28,21 @@ try:
 except IndexError:
 	printUsage()
 
+FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
+logging.basicConfig(format=FORMAT, level=logging.INFO)
+logger = logging.getLogger("main")
+logger.info("Starting!")
+
 OUTPUTIMAGE = sys.argv[1]
 IN = Image.open(sys.argv[2])
 INPUTIMAGE = IN.load()
 (SIZEX, SIZEY) = IN.size
 if(SIZEX != SIZEY):
-	print("Quadratisches Bild bitte!")
+	loggor.error("Quadratisches Bild bitte!")
 	exit(1)
 SIZE = SIZEY
 DOTS = int(sys.argv[3])
 
-FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
-logging.basicConfig(format=FORMAT, level=logging.INFO)
-logger = logging.getLogger("main")
-logger.info("Starting run!")
 
 def generateDots(ndots,size):
 
@@ -90,15 +87,8 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size ):
 	draw = ImageDraw.Draw(im, 'RGB')
 
 	for simplex in tris.simplices:
-		#if False:
-		#if (random.random() * abs(dots[simplex[0]][1] + dots[simplex[0]][0])) < 4000:
-		#if abs(dots[simplex[0]][1] - dots[simplex[0]][0]) < 1000:
-		#if (random.random() * math.sqrt(pow(abs(dots[simplex[0]][1] - (SIZE/2)),2) + pow(abs(dots[simplex[0]][0] - (SIZE/2)),2))) < SIZE/6:
-		#print([int(dots[simplex[0]][0]),int(dots[simplex[0]][1])])
-		m = [int(dots[simplex[0]][0]),int(dots[simplex[1]][0]),int(dots[simplex[2]][0])]
-		idx = np.argmin(m)
+		idx = np.argmin([int(dots[simplex[0]][0]),int(dots[simplex[1]][0]),int(dots[simplex[2]][0])])
 		(color1, color2, color3, alpha) = inImage[int(dots[simplex[idx]][0]),int(dots[simplex[idx]][1])]
-		#(color1, color2, color3) = inImage[0,0]
 		if int(random.random() * 255 ) >= color1:
 			(c1,c2,c3) = setColor(fgcolor)
 		else:
