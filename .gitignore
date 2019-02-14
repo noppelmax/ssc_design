@@ -1,2 +1,6 @@
 *_white.png
 *_black.png
+*_monobg.png
+*.tmp
+*.swp
+*.log

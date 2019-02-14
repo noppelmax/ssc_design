@@ -15,7 +15,7 @@ BGCOLOR_WHITE = 1
 
 
 def printUsage():
-	exit("Usage: <outputimage> <inputimage> <ndots>")
+	exit("Usage: <outputimage> <inputimage> <ndots> [overlay]")
 
 try:
 	if sys.argv[1] is None:
@@ -38,10 +38,23 @@ IN = Image.open(sys.argv[2])
 INPUTIMAGE = IN.load()
 (SIZEX, SIZEY) = IN.size
 if(SIZEX != SIZEY):
-	loggor.error("Quadratisches Bild bitte!")
+	logger.error("Quadratisches Bild bitte!")
 	exit(1)
 SIZE = SIZEY
 DOTS = int(sys.argv[3])
+OVERLAY = None
+OVERLAYIMAGE = None
+try:
+	if sys.argv[4]:
+		print("Use overlay")
+		OVERLAY = Image.open(sys.argv[4])
+		OVERLAYIMAGE = OVERLAY.load()
+		(w,h) = OVERLAY.size
+		if w != SIZE or h != size:
+			logger.error("Die Maße des Overlays müssen dem des Inputbildes entsprechen. %d x %d pixel" % (SIZE,SIZE))
+			exit(1)
+except:
+	pass
 
 
 def generateDots(ndots,size):
@@ -79,7 +92,7 @@ def setBW(bgcolor):
 	c3 = c1
 	return (c1,c2,c3)
 
-def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False):
+def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False, overlayImage = None):
 	(dots,tris) = generateDots(ndots, size)
 	canvas = (SIZE,SIZE)
 
@@ -87,7 +100,7 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False):
 		im = Image.new('RGB', canvas, (255,255,255,255))
 	else:
 		im = Image.new('RGB', canvas, (0,0,0,255))
-	draw = ImageDraw.Draw(im, 'RGB')
+	draw = ImageDraw.Draw(im, 'RGBA')
 
 	for simplex in tris.simplices:
 		idx = np.argmin([int(dots[simplex[0]][0]),int(dots[simplex[1]][0]),int(dots[simplex[2]][0])])
@@ -95,28 +108,32 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False):
 		if int(random.random() * 255 ) >= color1:
 			(c1,c2,c3) = setColor(fgcolor)
 			if monobg:
-				draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3))
+				draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3,255))
 		else:
 			(c1,c2,c3) = setBW(bgcolor)
 
 		if not monobg:
-			draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3))
+			draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3,255))
 
-
+	if overlayImage is not None:
+		#for x in range(0,SIZE):
+			#for y in range(0,SIZE):
+				#draw.point([x,y],fill=overlayImage[x,y])
+		im.paste(overlayImage, (0,0), overlayImage)
 	im.save(outImage)
 
 # MAIN
 if __name__ == "__main__":
 	try:
-		draw(OUTPUTIMAGE + "_red_black.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_BLACK, SIZE)
-		draw(OUTPUTIMAGE + "_fire_black.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE)
-		draw(OUTPUTIMAGE + "_red_white.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_WHITE, SIZE)
-		draw(OUTPUTIMAGE + "_fire_white.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE)
+		draw(OUTPUTIMAGE + "_red_black.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY)
+		draw(OUTPUTIMAGE + "_fire_black.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY)
+		draw(OUTPUTIMAGE + "_red_white.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY)
+		draw(OUTPUTIMAGE + "_fire_white.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY)
 
-		draw(OUTPUTIMAGE + "_red_black_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_BLACK, SIZE, monobg = True)
-		draw(OUTPUTIMAGE + "_fire_black_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, monobg = True)
-		draw(OUTPUTIMAGE + "_red_white_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_WHITE, SIZE, monobg = True)
-		draw(OUTPUTIMAGE + "_fire_white_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE, monobg = True)
+		draw(OUTPUTIMAGE + "_red_black_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_BLACK, SIZE, monobg = True, overlayImage = OVERLAY)
+		draw(OUTPUTIMAGE + "_fire_black_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, monobg = True, overlayImage = OVERLAY)
+		draw(OUTPUTIMAGE + "_red_white_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_WHITE, SIZE, monobg = True, overlayImage = OVERLAY)
+		draw(OUTPUTIMAGE + "_fire_white_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE, monobg = True, overlayImage = OVERLAY)
 
 	except KeyboardInterrupt as e:
 		logger.warning("Received KeyboardInterrupt! Terminating")
