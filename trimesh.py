@@ -79,11 +79,14 @@ def setBW(bgcolor):
 	c3 = c1
 	return (c1,c2,c3)
 
-def draw( outImage, inImage, ndots, fgcolor, bgcolor, size ):
+def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False):
 	(dots,tris) = generateDots(ndots, size)
 	canvas = (SIZE,SIZE)
 
-	im = Image.new('RGB', canvas, (255,255,255,255))
+	if bgcolor is BGCOLOR_WHITE:
+		im = Image.new('RGB', canvas, (255,255,255,255))
+	else:
+		im = Image.new('RGB', canvas, (0,0,0,255))
 	draw = ImageDraw.Draw(im, 'RGB')
 
 	for simplex in tris.simplices:
@@ -91,10 +94,14 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size ):
 		(color1, color2, color3, alpha) = inImage[int(dots[simplex[idx]][0]),int(dots[simplex[idx]][1])]
 		if int(random.random() * 255 ) >= color1:
 			(c1,c2,c3) = setColor(fgcolor)
+			if monobg:
+				draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3))
 		else:
 			(c1,c2,c3) = setBW(bgcolor)
 
-		draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3))
+		if not monobg:
+			draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3))
+
 
 	im.save(outImage)
 
@@ -105,6 +112,11 @@ if __name__ == "__main__":
 		draw(OUTPUTIMAGE + "_fire_black.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE)
 		draw(OUTPUTIMAGE + "_red_white.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_WHITE, SIZE)
 		draw(OUTPUTIMAGE + "_fire_white.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE)
+
+		draw(OUTPUTIMAGE + "_red_black_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_BLACK, SIZE, monobg = True)
+		draw(OUTPUTIMAGE + "_fire_black_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, monobg = True)
+		draw(OUTPUTIMAGE + "_red_white_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_WHITE, SIZE, monobg = True)
+		draw(OUTPUTIMAGE + "_fire_white_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE, monobg = True)
 
 	except KeyboardInterrupt as e:
 		logger.warning("Received KeyboardInterrupt! Terminating")
