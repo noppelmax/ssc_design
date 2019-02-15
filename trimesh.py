@@ -56,7 +56,7 @@ try:
 except:
 	pass
 
-LINEWIDTH = 8
+LINEWIDTH = 0
 
 def generateDots(ndots,size):
 
