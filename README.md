@@ -20,3 +20,10 @@ An example:
 python3 trimesh.py result input.png 1200 anzug.png
 ```
 
+## Features
++ Triangulate with a give number of points (Code: `NDOTS`)
++ Load the probability of a triangular to be in a colorstyle (Code: `FGCOLOR`) from a black-white-map at the position of its center
++ Draw gaps between all triangle with a given width (Code: `LINEWIDTH`)
++ Draw a Monocolor-Background where no triangle was spawned or draw a TriMesh-Background in the given Backgroundcolor (Code: `monobg`, `BGCOLOR`)
++ Draw an overlayimage over the generated one. This should contain a alpha mask. (Code: `OVERLAYIMAGE`)
+
