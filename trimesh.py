@@ -104,8 +104,12 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False, over
 	draw = ImageDraw.Draw(im, 'RGBA')
 
 	for simplex in tris.simplices:
-		idx = np.argmin([int(dots[simplex[0]][0]),int(dots[simplex[1]][0]),int(dots[simplex[2]][0])])
-		(color1, color2, color3, alpha) = inImage[int(dots[simplex[idx]][0]),int(dots[simplex[idx]][1])]
+		#idx = np.argmin([int(dots[simplex[0]][0]),int(dots[simplex[1]][0]),int(dots[simplex[2]][0])])
+		x = np.average([int(dots[simplex[0]][0]),int(dots[simplex[1]][0]),int(dots[simplex[2]][0])])
+		y = np.average([int(dots[simplex[0]][1]),int(dots[simplex[1]][1]),int(dots[simplex[2]][1])])
+
+		#(color1, color2, color3, alpha) = inImage[int(dots[simplex[idx]][0]),int(dots[simplex[idx]][1])]
+		(color1, color2, color3, alpha) = inImage[x,y]
 		if int(random.random() * 255 ) >= color1:
 			(c1,c2,c3) = setColor(fgcolor)
 			if monobg:
