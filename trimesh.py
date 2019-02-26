@@ -9,6 +9,10 @@ from scipy.spatial import Delaunay
 
 FGCOLOR_RED = 0
 FGCOLOR_FIRE = 1
+FGCOLOR_GREEN = 2
+FGCOLOR_BLUE = 3
+FGCOLOR_DGREEN = 4
+FGCOLOR_DBLUE = 5
 
 BGCOLOR_BLACK = 0
 BGCOLOR_WHITE = 1
@@ -56,7 +60,7 @@ try:
 except:
 	pass
 
-LINEWIDTH = 0
+LINEWIDTH = 5
 
 
 def generateDots(ndots,size):
@@ -79,19 +83,44 @@ def setColor(fgcolor):
 		c2 = 0 + int(random.random() * 30)
 		c3 = 0 + int(random.random() * 30)
 
-	if fgcolor is FGCOLOR_FIRE:
+	elif fgcolor is FGCOLOR_FIRE:
 		c1 = 255
 		c2 = 30 + int(random.random() * 225)
 		c3 = 0 + int(random.random() * 50)
+
+	elif fgcolor is FGCOLOR_GREEN:
+		c1 = 200 - int(random.random() * 150)
+		c2 = 255 - int(random.random() * 20)
+		c3 = 60 +  int(random.random() * 40)
+
+	elif fgcolor is FGCOLOR_BLUE:
+		c1 = 2  + int(random.random() * 20)
+		c2 = 170 + int(random.random() * 85)
+		c3 = 210 + int(random.random() * 40)
+
+	elif fgcolor is FGCOLOR_DGREEN:
+		c1 = 200 - int(random.random() * 150)
+		c2 = 255 - int(random.random() * 20)
+		c3 = 60 +  int(random.random() * 40)
+
+	elif fgcolor is FGCOLOR_DBLUE:
+		c1 = 2  + int(random.random() * 20)
+		c2 = 10 + int(random.random() * 150)
+		c3 = 210 + int(random.random() * 40)
+
 	return (c1,c2,c3)
 
 def setBW(bgcolor):
 	if bgcolor is BGCOLOR_WHITE:
 		c1 =  255 - int(random.random() * 50)
+		c2 = c1
+		c3 = c1
 	else:
 		c1 = int(random.random() * 50)
-	c2 = c1
-	c3 = c1
+		c2 = c1
+		c3 = c1
+
+
 	return (c1,c2,c3)
 
 def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False, overlayImage = None, lineWidth=0):
@@ -147,7 +176,7 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False, over
 		if bgcolor is BGCOLOR_BLACK:
 			c = (0,0,0,255)
 		else:
-			c = (255,255,255,255)
+			c = (230,230,230,255)
 
 		w = lineWidth
 		if w != 0:
@@ -167,9 +196,19 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False, over
 if __name__ == "__main__":
 	try:
 		draw(OUTPUTIMAGE + "_red_black.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		#draw(OUTPUTIMAGE + "_fire_black.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		draw(OUTPUTIMAGE + "_fire_black.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
 		draw(OUTPUTIMAGE + "_red_white.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		#draw(OUTPUTIMAGE + "_fire_white.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		draw(OUTPUTIMAGE + "_fire_white.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+
+		draw(OUTPUTIMAGE + "_green_black.png", INPUTIMAGE, DOTS, FGCOLOR_GREEN, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		draw(OUTPUTIMAGE + "_blue_black.png", INPUTIMAGE, DOTS, FGCOLOR_BLUE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		draw(OUTPUTIMAGE + "_green_white.png", INPUTIMAGE, DOTS, FGCOLOR_GREEN, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		draw(OUTPUTIMAGE + "_blue_white.png", INPUTIMAGE, DOTS, FGCOLOR_BLUE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+
+		draw(OUTPUTIMAGE + "_dgreen_black.png", INPUTIMAGE, DOTS, FGCOLOR_DGREEN, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		draw(OUTPUTIMAGE + "_dblue_black.png", INPUTIMAGE, DOTS, FGCOLOR_DBLUE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		draw(OUTPUTIMAGE + "_dgreen_white.png", INPUTIMAGE, DOTS, FGCOLOR_DGREEN, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		draw(OUTPUTIMAGE + "_dblue_white.png", INPUTIMAGE, DOTS, FGCOLOR_DBLUE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
 
 		#draw(OUTPUTIMAGE + "_red_black_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_BLACK, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
 		#draw(OUTPUTIMAGE + "_fire_black_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
