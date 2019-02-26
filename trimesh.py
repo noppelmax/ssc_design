@@ -101,6 +101,8 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False, over
 	svgGrad = ""
 	svgPoly = ""
 
+	gradient = 0
+
 	if bgcolor is BGCOLOR_WHITE:
 		im = Image.new('RGB', canvas, (255,255,255,255))
 	else:
@@ -115,15 +117,30 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False, over
 		#(color1, color2, color3, alpha) = inImage[int(dots[simplex[idx]][0]),int(dots[simplex[idx]][1])]
 		(color1, color2, color3, alpha) = inImage[x,y]
 		if int(random.random() * 255 ) >= color1:
+
 			(c1,c2,c3) = setColor(fgcolor)
 			draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3,255))
-			svgPoly = svgPoly + "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"rgb(%d,%d,%d)\" />" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],c1,c2,c3)
+
+			p = 1.01
+			grad = "<linearGradient id=\"grad" + str(gradient) + "\" x1=\"0%%\" y1=\"0%%\" x2=\"0%%\" y2=\"300%%\">\n<stop offset=\"0%%\" style=\"stop-color:rgb(%d,%d,%d);stop-opacity:1\" />\n<stop offset=\"200%%\" style=\"stop-color:rgb(%d,%d,%d);stop-opacity:1\" /></linearGradient>" % (c1,c2,c3, int(c1*p),int(c1*p),int(c1*p))
+			svgGrad = svgGrad + grad
+
+			#svgPoly = svgPoly + "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"rgb(%d,%d,%d)\" />\n" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],c1,c2,c3)
+			svgPoly = svgPoly + "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"url(#grad%d)\" />\n" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],gradient)
+			gradient = gradient + 1
 		else:
+
 			(c1,c2,c3) = setBW(bgcolor)
 			# Drawing the bg parts only when not in monobg mode
 			if not monobg:
 				draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3,255))
-				svgPoly = svgPoly + "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"rgb(%d,%d,%d)\" />" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],c1,c2,c3)
+
+				p = 1.01
+				grad = "<linearGradient id=\"grad" + str(gradient) + "\" x1=\"0%%\" y1=\"0%%\" x2=\"0%%\" y2=\"100%%\">\n<stop offset=\"0%%\" style=\"stop-color:rgb(%d,%d,%d);stop-opacity:1\" />\n<stop offset=\"100%%\" style=\"stop-color:rgb(%d,%d,%d);stop-opacity:1\" /></linearGradient>" % (c1,c2,c3, int(c1*p),int(c1*p),int(c1*p))
+				svgGrad = svgGrad + grad
+				#svgPoly = svgPoly + "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"rgb(%d,%d,%d)\" />\n" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],c1,c2,c3)
+				svgPoly = svgPoly + "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"url(#grad%d)\" />\n" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],gradient)
+				gradient = gradient + 1
 
 
 		# DRAWING the gaps
@@ -141,7 +158,7 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False, over
 	if overlayImage is not None:
 		im.paste(overlayImage, (0,0), overlayImage)
 	im.save(outImage)
-	svg = "<svg height=\""+str(SIZE)+"\" width=\""+str(SIZE)+"\">" + "<defs>" + svgGrad + "</defs>" + svgPoly + "</svg>"
+	svg = "<svg height=\""+str(SIZE)+"\" width=\""+str(SIZE)+"\">\n" + "<defs>\n" + svgGrad + "</defs>\n" + svgPoly + "</svg>"
 	f = open("test.svg", "w")
 	f.write(svg)
 
