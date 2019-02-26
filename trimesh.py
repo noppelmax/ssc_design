@@ -60,7 +60,7 @@ try:
 except:
 	pass
 
-LINEWIDTH = 5
+LINEWIDTH = 0
 
 
 def generateDots(ndots,size):
@@ -84,9 +84,14 @@ def setColor(fgcolor):
 		c3 = 0 + int(random.random() * 30)
 
 	elif fgcolor is FGCOLOR_FIRE:
-		c1 = 255
-		c2 = 30 + int(random.random() * 225)
-		c3 = 0 + int(random.random() * 50)
+		if int(random.random() < 0.8):
+			c1 = 255
+			c2 = 40 + int(random.random() * 180)
+			c3 = 0 + int(random.random() * 30)
+		else:
+			c1 = 209
+			c2 = 0
+			c3 = 0
 
 	elif fgcolor is FGCOLOR_GREEN:
 		c1 = 200 - int(random.random() * 150)
@@ -107,6 +112,9 @@ def setColor(fgcolor):
 		c1 = 2  + int(random.random() * 20)
 		c2 = 10 + int(random.random() * 150)
 		c3 = 210 + int(random.random() * 40)
+		#c1 = 90 + int(random.random() * 50)
+		#c2 = c1
+		#c3 = c1
 
 	return (c1,c2,c3)
 
@@ -119,6 +127,9 @@ def setBW(bgcolor):
 		c1 = int(random.random() * 50)
 		c2 = c1
 		c3 = c1
+		#c1 = 2  + int(random.random() * 20)
+		#c2 = 10 + int(random.random() * 150)
+		#c3 = 210 + int(random.random() * 40)
 
 
 	return (c1,c2,c3)
