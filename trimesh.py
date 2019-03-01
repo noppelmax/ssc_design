@@ -7,15 +7,9 @@ import numpy as np
 import math
 from scipy.spatial import Delaunay
 
-FGCOLOR_RED = 0
-FGCOLOR_FIRE = 1
-FGCOLOR_GREEN = 2
-FGCOLOR_BLUE = 3
-FGCOLOR_DGREEN = 4
-FGCOLOR_DBLUE = 5
 
-BGCOLOR_BLACK = 0
-BGCOLOR_WHITE = 1
+FGTHEMES = ["fire","ice","darkgreen","lightgreen"]
+BGTHEMES = ["black_bg", "white_bg"]
 
 
 def printUsage():
@@ -79,59 +73,21 @@ def generateDots(ndots,size):
 
 	return (dots,tris)
 
-def setColor(fgcolor):
-	if fgcolor is FGCOLOR_RED:
-		c1 = 0 + int(random.random() * 255)
-		c2 = 0 + int(random.random() * 30)
-		c3 = 0 + int(random.random() * 30)
+def getFGColor(fgcolor):
+	thPic = Image.open("themes/" + FGTHEMES[fgcolor] + ".png")
+	themePic = thPic.load()
 
-	elif fgcolor is FGCOLOR_FIRE:
-		if int(random.random() < 0.8):
-			c1 = 255
-			c2 = 40 + int(random.random() * 180)
-			c3 = 0 + int(random.random() * 30)
-		else:
-			c1 = 209
-			c2 = 0
-			c3 = 0
-
-	elif fgcolor is FGCOLOR_GREEN:
-		c1 = 200 - int(random.random() * 150)
-		c2 = 255 - int(random.random() * 20)
-		c3 = 60 +  int(random.random() * 40)
-
-	elif fgcolor is FGCOLOR_BLUE:
-		c1 = 2  + int(random.random() * 20)
-		c2 = 170 + int(random.random() * 85)
-		c3 = 210 + int(random.random() * 40)
-
-	elif fgcolor is FGCOLOR_DGREEN:
-		c1 = 200 - int(random.random() * 150)
-		c2 = 255 - int(random.random() * 20)
-		c3 = 60 +  int(random.random() * 40)
-
-	elif fgcolor is FGCOLOR_DBLUE:
-		c1 = 2  + int(random.random() * 20)
-		c2 = 10 + int(random.random() * 150)
-		c3 = 210 + int(random.random() * 40)
-		#c1 = 90 + int(random.random() * 50)
-		#c2 = c1
-		#c3 = c1
-
+	(sx, sy) = thPic.size
+	(c1,c2,c3) = themePic[int(random.random()*sx),0]
 	return (c1,c2,c3)
 
-def setBW(bgcolor):
-	if bgcolor is BGCOLOR_WHITE:
-		c1 =  255 - int(random.random() * 50)
-		c2 = c1
-		c3 = c1
-	else:
-		c1 = int(random.random() * 50)
-		c2 = c1
-		c3 = c1
-		#c1 = 2  + int(random.random() * 20)
-		#c2 = 10 + int(random.random() * 150)
-		#c3 = 210 + int(random.random() * 40)
+def getBGColor(bgcolor):
+	thPic = Image.open("themes/" + BGTHEMES[bgcolor] + ".png")
+	themePic = thPic.load()
+
+	(sx, sy) = thPic.size
+	(c1,c2,c3) = themePic[int(random.random()*sx),0]
+	return (c1,c2,c3)
 
 
 	return (c1,c2,c3)
@@ -159,7 +115,7 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 
 	gradient = 0
 
-	if bgcolor is BGCOLOR_WHITE:
+	if bgcolor is 1:
 		im = Image.new('RGB', canvas, (255,255,255,255))
 	else:
 		im = Image.new('RGB', canvas, (0,0,0,255))
@@ -170,9 +126,8 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 		x = np.average([int(dots[simplex[0]][0]),int(dots[simplex[1]][0]),int(dots[simplex[2]][0])])
 		y = np.average([int(dots[simplex[0]][1]),int(dots[simplex[1]][1]),int(dots[simplex[2]][1])])
 
-		print(simplex)
 		if simplex[COLORINDEX] == FG:
-			(c1,c2,c3) = setColor(fgcolor)
+			(c1,c2,c3) = getFGColor(fgcolor)
 			draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3,255))
 
 			p = 1.01
@@ -183,7 +138,7 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 			svgPoly = svgPoly + "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"url(#grad%d)\" />\n" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],gradient)
 			gradient = gradient + 1
 		else:
-			(c1,c2,c3) = setBW(bgcolor)
+			(c1,c2,c3) = getBGColor(bgcolor)
 			# Drawing the bg parts only when not in monobg mode
 			if not monobg:
 				draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3,255))
@@ -197,7 +152,7 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 
 
 		# DRAWING the gaps
-		if bgcolor is BGCOLOR_BLACK:
+		if bgcolor is 0:
 			c = (0,0,0,255)
 		else:
 			c = (230,230,230,255)
@@ -221,25 +176,9 @@ if __name__ == "__main__":
 		(dots,tris) = generateDots(DOTS, SIZE)
 		(dots,tris) = buildMesh(INPUTIMAGE,tris, dots)
 
-		exportPic(OUTPUTIMAGE + "_red_black.png", tris, dots, FGCOLOR_RED, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		exportPic(OUTPUTIMAGE + "_fire_black.png", tris, dots,  FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		exportPic(OUTPUTIMAGE + "_red_white.png", tris, dots,  FGCOLOR_RED, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		exportPic(OUTPUTIMAGE + "_fire_white.png", tris, dots,  FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-
-		exportPic(OUTPUTIMAGE + "_green_black.png", tris, dots,  FGCOLOR_GREEN, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		exportPic(OUTPUTIMAGE + "_blue_black.png", tris, dots,  FGCOLOR_BLUE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		exportPic(OUTPUTIMAGE + "_green_white.png", tris, dots,  FGCOLOR_GREEN, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		exportPic(OUTPUTIMAGE + "_blue_white.png", tris, dots,  FGCOLOR_BLUE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-
-		exportPic(OUTPUTIMAGE + "_dgreen_black.png", tris, dots,  FGCOLOR_DGREEN, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		exportPic(OUTPUTIMAGE + "_dblue_black.png", tris, dots,  FGCOLOR_DBLUE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		exportPic(OUTPUTIMAGE + "_dgreen_white.png", tris, dots,  FGCOLOR_DGREEN, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		exportPic(OUTPUTIMAGE + "_dblue_white.png", tris, dots,  FGCOLOR_DBLUE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-
-		#exportPic(OUTPUTIMAGE + "_red_black_monobg.png", tris, dots,  FGCOLOR_RED, BGCOLOR_BLACK, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		#exportPic(OUTPUTIMAGE + "_fire_black_monobg.png", tris, dots,  FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		#exportPic(OUTPUTIMAGE + "_red_white_monobg.png", tris, dots,  FGCOLOR_RED, BGCOLOR_WHITE, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		#exportPic(OUTPUTIMAGE + "_fire_white_monobg.png", tris, dots,  FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		for fg in range(0,len(FGTHEMES)):
+			for bg in range(0,len(BGTHEMES)):
+				exportPic(OUTPUTIMAGE + "_"+ str(fg) + "-" + str(bg) + ".png", tris, dots, fg, bg, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
 
 	except KeyboardInterrupt as e:
 		logger.warning("Received KeyboardInterrupt! Terminating")
