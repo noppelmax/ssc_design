@@ -89,9 +89,6 @@ def getBGColor(bgcolor):
 	(c1,c2,c3) = themePic[int(random.random()*sx),0]
 	return (c1,c2,c3)
 
-
-	return (c1,c2,c3)
-
 def buildMesh( inImage, tris, dots):
 	newTris = []
 
