@@ -13,7 +13,7 @@ BGTHEMES = ["black_bg", "white_bg"]
 
 
 def printUsage():
-	exit("Usage: <outputimage> <inputimage> <ndots> [overlay]")
+	exit("Usage: <outputimage> <inputimage> <ndots>")
 
 try:
 	if sys.argv[1] is None:
@@ -45,17 +45,20 @@ OVERLAYIMAGE = None
 COLORINDEX = 3
 FG = 1
 BG = 2
-try:
-	if sys.argv[4]:
-		logger.info("Use overlay")
-		OVERLAY = Image.open(sys.argv[4])
-		OVERLAYIMAGE = OVERLAY.load()
-		(w,h) = OVERLAY.size
-		if w != SIZE or h != size:
-			logger.error("Die Masse des Overlays muessen dem des Inputbildes entsprechen. %d x %d pixel" % (SIZE,SIZE))
-			exit(1)
-except:
-	pass
+
+OVERLAY_W = Image.open("anzug_w.png")
+OVERLAYIMAGE_W = OVERLAY_W.load()
+(w,h) = OVERLAY_W.size
+if w != SIZE or h != SIZE:
+	logger.error("Die Masse des Overlays muessen dem des Inputbildes entsprechen. %d x %d pixel" % (SIZE,SIZE))
+	exit(1)
+
+OVERLAY_B = Image.open("anzug_b.png")
+OVERLAYIMAGE_B = OVERLAY_B.load()
+(w,h) = OVERLAY_B.size
+if w != SIZE or h != SIZE:
+	logger.error("Die Masse des Overlays muessen dem des Inputbildes entsprechen. %d x %d pixel" % (SIZE,SIZE))
+	exit(1)
 
 LINEWIDTH = 0
 
@@ -175,7 +178,11 @@ if __name__ == "__main__":
 
 		for fg in range(0,len(FGTHEMES)):
 			for bg in range(0,len(BGTHEMES)):
-				exportPic(OUTPUTIMAGE + "_"+ str(fg) + "-" + str(bg) + ".png", tris, dots, fg, bg, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+				if bg == 1:
+					exportPic(OUTPUTIMAGE + "_"+ str(fg) + "-" + str(bg) + ".png", tris, dots, fg, bg, SIZE, overlayImage = OVERLAY_W, lineWidth=LINEWIDTH)
+				else:
+					exportPic(OUTPUTIMAGE + "_"+ str(fg) + "-" + str(bg) + ".png", tris, dots, fg, bg, SIZE, overlayImage = OVERLAY_B, lineWidth=LINEWIDTH)
+
 
 	except KeyboardInterrupt as e:
 		logger.warning("Received KeyboardInterrupt! Terminating")
