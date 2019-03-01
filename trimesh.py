@@ -48,6 +48,9 @@ SIZE = SIZEY
 DOTS = int(sys.argv[3])
 OVERLAY = None
 OVERLAYIMAGE = None
+COLORINDEX = 3
+FG = 1
+BG = 2
 try:
 	if sys.argv[4]:
 		logger.info("Use overlay")
@@ -61,7 +64,6 @@ except:
 	pass
 
 LINEWIDTH = 0
-
 
 def generateDots(ndots,size):
 
@@ -134,10 +136,24 @@ def setBW(bgcolor):
 
 	return (c1,c2,c3)
 
-def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False, overlayImage = None, lineWidth=0):
-	(dots,tris) = generateDots(ndots, size)
-	canvas = (SIZE,SIZE)
+def buildMesh( inImage, tris, dots):
+	newTris = []
 
+	for simplex in tris.simplices:
+		x = np.average([int(dots[simplex[0]][0]),int(dots[simplex[1]][0]),int(dots[simplex[2]][0])])
+		y = np.average([int(dots[simplex[0]][1]),int(dots[simplex[1]][1]),int(dots[simplex[2]][1])])
+
+		(color1, color2, color3, alpha) = inImage[x,y]
+		if int(random.random() * 255 ) >= color1:
+			simplex = np.append(simplex,FG)
+		else:
+			simplex = np.append(simplex,BG)
+		newTris.append([simplex[0], simplex[1], simplex[2], simplex[3]])
+	return (dots,newTris)
+
+
+def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, overlayImage = None, lineWidth=0):
+	canvas = (SIZE,SIZE)
 	svgGrad = ""
 	svgPoly = ""
 
@@ -149,15 +165,13 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False, over
 		im = Image.new('RGB', canvas, (0,0,0,255))
 	draw = ImageDraw.Draw(im, 'RGBA')
 
-	for simplex in tris.simplices:
+	for simplex in tris:
 		#idx = np.argmin([int(dots[simplex[0]][0]),int(dots[simplex[1]][0]),int(dots[simplex[2]][0])])
 		x = np.average([int(dots[simplex[0]][0]),int(dots[simplex[1]][0]),int(dots[simplex[2]][0])])
 		y = np.average([int(dots[simplex[0]][1]),int(dots[simplex[1]][1]),int(dots[simplex[2]][1])])
 
-		#(color1, color2, color3, alpha) = inImage[int(dots[simplex[idx]][0]),int(dots[simplex[idx]][1])]
-		(color1, color2, color3, alpha) = inImage[x,y]
-		if int(random.random() * 255 ) >= color1:
-
+		print(simplex)
+		if simplex[COLORINDEX] == FG:
 			(c1,c2,c3) = setColor(fgcolor)
 			draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3,255))
 
@@ -169,7 +183,6 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False, over
 			svgPoly = svgPoly + "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"url(#grad%d)\" />\n" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],gradient)
 			gradient = gradient + 1
 		else:
-
 			(c1,c2,c3) = setBW(bgcolor)
 			# Drawing the bg parts only when not in monobg mode
 			if not monobg:
@@ -202,29 +215,31 @@ def draw( outImage, inImage, ndots, fgcolor, bgcolor, size, monobg = False, over
 	f = open("test.svg", "w")
 	f.write(svg)
 
-
 # MAIN
 if __name__ == "__main__":
 	try:
-		draw(OUTPUTIMAGE + "_red_black.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		draw(OUTPUTIMAGE + "_fire_black.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		draw(OUTPUTIMAGE + "_red_white.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		draw(OUTPUTIMAGE + "_fire_white.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		(dots,tris) = generateDots(DOTS, SIZE)
+		(dots,tris) = buildMesh(INPUTIMAGE,tris, dots)
 
-		draw(OUTPUTIMAGE + "_green_black.png", INPUTIMAGE, DOTS, FGCOLOR_GREEN, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		draw(OUTPUTIMAGE + "_blue_black.png", INPUTIMAGE, DOTS, FGCOLOR_BLUE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		draw(OUTPUTIMAGE + "_green_white.png", INPUTIMAGE, DOTS, FGCOLOR_GREEN, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		draw(OUTPUTIMAGE + "_blue_white.png", INPUTIMAGE, DOTS, FGCOLOR_BLUE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		exportPic(OUTPUTIMAGE + "_red_black.png", tris, dots, FGCOLOR_RED, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		exportPic(OUTPUTIMAGE + "_fire_black.png", tris, dots,  FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		exportPic(OUTPUTIMAGE + "_red_white.png", tris, dots,  FGCOLOR_RED, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		exportPic(OUTPUTIMAGE + "_fire_white.png", tris, dots,  FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
 
-		draw(OUTPUTIMAGE + "_dgreen_black.png", INPUTIMAGE, DOTS, FGCOLOR_DGREEN, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		draw(OUTPUTIMAGE + "_dblue_black.png", INPUTIMAGE, DOTS, FGCOLOR_DBLUE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		draw(OUTPUTIMAGE + "_dgreen_white.png", INPUTIMAGE, DOTS, FGCOLOR_DGREEN, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		draw(OUTPUTIMAGE + "_dblue_white.png", INPUTIMAGE, DOTS, FGCOLOR_DBLUE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		exportPic(OUTPUTIMAGE + "_green_black.png", tris, dots,  FGCOLOR_GREEN, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		exportPic(OUTPUTIMAGE + "_blue_black.png", tris, dots,  FGCOLOR_BLUE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		exportPic(OUTPUTIMAGE + "_green_white.png", tris, dots,  FGCOLOR_GREEN, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		exportPic(OUTPUTIMAGE + "_blue_white.png", tris, dots,  FGCOLOR_BLUE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
 
-		#draw(OUTPUTIMAGE + "_red_black_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_BLACK, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		#draw(OUTPUTIMAGE + "_fire_black_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		#draw(OUTPUTIMAGE + "_red_white_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_RED, BGCOLOR_WHITE, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
-		#draw(OUTPUTIMAGE + "_fire_white_monobg.png", INPUTIMAGE, DOTS, FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		exportPic(OUTPUTIMAGE + "_dgreen_black.png", tris, dots,  FGCOLOR_DGREEN, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		exportPic(OUTPUTIMAGE + "_dblue_black.png", tris, dots,  FGCOLOR_DBLUE, BGCOLOR_BLACK, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		exportPic(OUTPUTIMAGE + "_dgreen_white.png", tris, dots,  FGCOLOR_DGREEN, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		exportPic(OUTPUTIMAGE + "_dblue_white.png", tris, dots,  FGCOLOR_DBLUE, BGCOLOR_WHITE, SIZE, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+
+		#exportPic(OUTPUTIMAGE + "_red_black_monobg.png", tris, dots,  FGCOLOR_RED, BGCOLOR_BLACK, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		#exportPic(OUTPUTIMAGE + "_fire_black_monobg.png", tris, dots,  FGCOLOR_FIRE, BGCOLOR_BLACK, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		#exportPic(OUTPUTIMAGE + "_red_white_monobg.png", tris, dots,  FGCOLOR_RED, BGCOLOR_WHITE, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
+		#exportPic(OUTPUTIMAGE + "_fire_white_monobg.png", tris, dots,  FGCOLOR_FIRE, BGCOLOR_WHITE, SIZE, monobg = True, overlayImage = OVERLAY, lineWidth=LINEWIDTH)
 
 	except KeyboardInterrupt as e:
 		logger.warning("Received KeyboardInterrupt! Terminating")
