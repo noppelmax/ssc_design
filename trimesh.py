@@ -66,11 +66,17 @@ def generateDots(ndots,size):
 
 	#for i in range(0,DOTS):
 	#	dots.append((int(random.random() * WIDTH), int(random.random() * HEIGHT)))
-	dots = np.random.randint(1, size-1, (ndots+4, 2))
-	dots[0] = [0,0]
-	dots[1] = [size-1,0]
-	dots[2] = [0,size-1]
-	dots[3] = [size-1,size-1]
+
+	dots = []
+
+	for i in range(0,ndots):
+		d = [int(random.random() * SIZE), int(random.random() * SIZE)]
+		skip = False
+		for dot in dots:
+			if (abs(dot[0] - d[0]) < 10) and (abs(dot[1] - d[1]) < 10):
+				skip = True
+		if not skip:
+			dots.append(d)
 
 	tris = Delaunay(dots)
 
@@ -107,6 +113,72 @@ def buildMesh( inImage, tris, dots):
 		newTris.append([simplex[0], simplex[1], simplex[2], simplex[3]])
 	return (dots,newTris)
 
+def getGradientLine(simplex,dots):
+	xMin = np.min([int(dots[simplex[0]][0]),int(dots[simplex[1]][0]),int(dots[simplex[2]][0])])
+	yMin = np.min([int(dots[simplex[0]][1]),int(dots[simplex[1]][1]),int(dots[simplex[2]][1])])
+
+	xMax = np.max([int(dots[simplex[0]][0]),int(dots[simplex[1]][0]),int(dots[simplex[2]][0])])
+	yMax = np.max([int(dots[simplex[0]][1]),int(dots[simplex[1]][1]),int(dots[simplex[2]][1])])
+
+	if (dots[simplex[0]][0]-xMin) == 0:
+		x1 = 0
+	else:
+		x1 = int(100 / float(((xMax-xMin)/(dots[simplex[0]][0]-xMin))))
+
+	if (dots[simplex[0]][1]-yMin) == 0:
+		y1 = 0
+	else:
+		y1 = int(100 / float(((yMax-yMin)/(dots[simplex[0]][1]-yMin))))
+
+
+	if (dots[simplex[1]][0]-xMin) == 0:
+		x2 = 0
+	else:
+		x2 = int(100 / float(((xMax-xMin)/(dots[simplex[1]][0]-xMin))))
+
+	if (dots[simplex[1]][1]-yMin) == 0:
+		y2 = 0
+	else:
+		y2 = int(100 / float(((yMax-yMin)/(dots[simplex[1]][1]-yMin))))
+
+
+	#find the center
+	cx = (x1+x2)/2;
+	cy = (y1+y2)/2;
+
+	#move the line to center on the origin
+	x1=x1-cx;
+	y1=y1-cy;
+	x2=x2-cx;
+	y2=y2-cy;
+
+	#rotate both points
+	xtemp = x1
+	ytemp = y1
+	x1=-ytemp
+	y1=xtemp
+
+	xtemp = x2
+	ytemp = y2
+	x2=-ytemp
+	y2=xtemp
+
+	#move the center point back to where it was
+	x1=x1+cx
+	y1=y1+cy
+	x2=x2+cx
+	y2=y2+cy
+	return (x1,y1,x2,y2)
+
+def getGradient(gradient, simplex, dots, c1, c2, c3, p):
+
+	(x1,y1,x2,y2) = getGradientLine(simplex, dots)
+	r = "\n<linearGradient id=\"grad" + str(gradient) + "\" x1=\"%d%%\" y1=\"%d%%\" x2=\"%d%%\" y2=\"%d%%\">\n<stop offset=\"0%%\" style=\"stop-color:rgb(%d,%d,%d);stop-opacity:1\" />\n<stop offset=\"100%%\" style=\"stop-color:rgb(%d,%d,%d);stop-opacity:1\" />\n</linearGradient>" % (x1,y1,x2,y2,min(int(c1*p),255),min(int(c2*p),255),min(int(c3*p),255),c1,c2,c3)
+
+	return r
+
+def getSVGTriangle(simplex, dots, gradient):
+	return "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"url(#grad%d)\" />\n" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],gradient)
 
 def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, overlayImage = None, lineWidth=0):
 	canvas = (SIZE,SIZE)
@@ -130,12 +202,10 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 			(c1,c2,c3) = getFGColor(fgcolor)
 			draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3,255))
 
-			p = 1.01
-			grad = "<linearGradient id=\"grad" + str(gradient) + "\" x1=\"0%%\" y1=\"0%%\" x2=\"0%%\" y2=\"300%%\">\n<stop offset=\"0%%\" style=\"stop-color:rgb(%d,%d,%d);stop-opacity:1\" />\n<stop offset=\"200%%\" style=\"stop-color:rgb(%d,%d,%d);stop-opacity:1\" /></linearGradient>" % (c1,c2,c3, int(c1*p),int(c1*p),int(c1*p))
+			p = 1.80
+			grad = getGradient(gradient, simplex, dots, c1, c2, c3, p)
 			svgGrad = svgGrad + grad
-
-			#svgPoly = svgPoly + "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"rgb(%d,%d,%d)\" />\n" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],c1,c2,c3)
-			svgPoly = svgPoly + "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"url(#grad%d)\" />\n" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],gradient)
+			svgPoly = svgPoly + getSVGTriangle(simplex, dots, gradient)
 			gradient = gradient + 1
 		else:
 			(c1,c2,c3) = getBGColor(bgcolor)
@@ -143,19 +213,20 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 			if not monobg:
 				draw.polygon([dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1]], fill=(c1,c2,c3,255))
 
-				p = 1.01
-				grad = "<linearGradient id=\"grad" + str(gradient) + "\" x1=\"0%%\" y1=\"0%%\" x2=\"0%%\" y2=\"100%%\">\n<stop offset=\"0%%\" style=\"stop-color:rgb(%d,%d,%d);stop-opacity:1\" />\n<stop offset=\"100%%\" style=\"stop-color:rgb(%d,%d,%d);stop-opacity:1\" /></linearGradient>" % (c1,c2,c3, int(c1*p),int(c1*p),int(c1*p))
+				p = 1.30
+				grad = getGradient(gradient, simplex, dots, c1, c2, c3, p)
 				svgGrad = svgGrad + grad
-				#svgPoly = svgPoly + "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"rgb(%d,%d,%d)\" />\n" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],c1,c2,c3)
-				svgPoly = svgPoly + "<polygon points=\"%d,%d %d,%d %d,%d\" fill=\"url(#grad%d)\" />\n" % (dots[simplex[0]][0],dots[simplex[0]][1],dots[simplex[1]][0],dots[simplex[1]][1],dots[simplex[2]][0],dots[simplex[2]][1],gradient)
+				svgPoly = svgPoly + getSVGTriangle(simplex, dots, gradient)
 				gradient = gradient + 1
 
 
 		# DRAWING the gaps
 		if bgcolor is 0:
 			c = (0,0,0,255)
+			svgBG = "<polygon points=\"0,0 %d,0 %d,%d 0,%d\" fill=\"rgb(0,0,0)\" />\n" % (SIZE,SIZE,SIZE,SIZE)
 		else:
-			c = (230,230,230,255)
+			c = (255,255,255,255)
+			svgBG = "<polygon points=\"0,0 %d,0 %d,%d 0,%d\" fill=\"rgb(255,255,255)\" />\n" % (SIZE,SIZE,SIZE,SIZE)
 
 		w = lineWidth
 		if w != 0:
@@ -165,23 +236,37 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 
 	if overlayImage is not None:
 		im.paste(overlayImage, (0,0), overlayImage)
-	im.save(outImage)
-	svg = "<svg height=\""+str(SIZE)+"\" width=\""+str(SIZE)+"\">\n" + "<defs>\n" + svgGrad + "</defs>\n" + svgPoly + "</svg>"
-	f = open("test.svg", "w")
+	im.save(outImage+".png")
+
+	svg = "<svg height=\""+str(SIZE)+"\" width=\""+str(SIZE)+"\">\n" + "<defs>\n" + svgGrad + "</defs>\n" + svgBG + svgPoly + "</svg>"
+	f = open(outImage + ".svg", "w")
 	f.write(svg)
 
 # MAIN
 if __name__ == "__main__":
 	try:
+		dots = [[10,100],[0,0],[100,100]]
+		simplex = [0,1,2]
+		grad = getGradient(1, simplex, dots, 100, 100, 100, 1.40)
+		poly = getSVGTriangle(simplex, dots, 1)
+		(x1,y1,x2,y2) = getGradientLine(simplex, dots)
+		poly = poly + "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke=\"black\" />" % (x1,y1,x2,y2)
+		svg = "<svg height=\""+str(200)+"\" width=\""+str(200)+"\">\n" + "<defs>\n" + grad + "</defs>\n" +poly + "</svg>"
+		f = open("test.svg", "w")
+		f.write(svg)
+
 		(dots,tris) = generateDots(DOTS, SIZE)
 		(dots,tris) = buildMesh(INPUTIMAGE,tris, dots)
+		np.savetxt("meshDot.dat", dots)
+		np.savetxt("meshTris.dat", tris)
 
 		for fg in range(0,len(FGTHEMES)):
 			for bg in range(0,len(BGTHEMES)):
 				if bg == 1:
-					exportPic(OUTPUTIMAGE + "_"+ str(fg) + "-" + str(bg) + ".png", tris, dots, fg, bg, SIZE, overlayImage = OVERLAY_W, lineWidth=LINEWIDTH)
+					exportPic(OUTPUTIMAGE + "_"+ str(fg) + "-" + str(bg), tris, dots, fg, bg, SIZE, overlayImage = OVERLAY_W, lineWidth=LINEWIDTH)
 				else:
-					exportPic(OUTPUTIMAGE + "_"+ str(fg) + "-" + str(bg) + ".png", tris, dots, fg, bg, SIZE, overlayImage = OVERLAY_B, lineWidth=LINEWIDTH)
+					exportPic(OUTPUTIMAGE + "_"+ str(fg) + "-" + str(bg), tris, dots, fg, bg, SIZE, overlayImage = OVERLAY_B, lineWidth=LINEWIDTH)
+
 
 
 	except KeyboardInterrupt as e:
