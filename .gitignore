@@ -4,3 +4,9 @@
 *.tmp
 *.swp
 *.log
+result_*
+v1/*
+zwischenspeicher/*
+*.dat
+*.xcf
+

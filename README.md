@@ -5,7 +5,7 @@ Install all dependencies via pip, conda or you packagemanager.
 
 ## Run
 ```
-python3 <outputname> <inputimage> <ndots> [overlayimage]
+python3 <outputname> <inputimage> <ndots>
 ```
 Outname should be a short indicator which run it is. Existing files will be overwritten. For example choose "result". The files will be named "result\_fire\_black.png", "result\_red\_white.png" ...
 
@@ -17,7 +17,7 @@ The overlayimage is optional but should have the same size as the inputimage.
 
 An example:
 ```
-python3 trimesh.py result input.png 1200 anzug.png
+python3 trimesh.py result input.png 1200
 ```
 
 ## Features
@@ -25,5 +25,3 @@ python3 trimesh.py result input.png 1200 anzug.png
 + Load the probability of a triangular to be in a colorstyle (Code: `FGCOLOR`) from a black-white-map at the position of its center
 + Draw gaps between all triangle with a given width (Code: `LINEWIDTH`)
 + Draw a Monocolor-Background where no triangle was spawned or draw a TriMesh-Background in the given Backgroundcolor (Code: `monobg`, `BGCOLOR`)
-+ Draw an overlayimage over the generated one. This should contain a alpha mask. (Code: `OVERLAYIMAGE`)
-
