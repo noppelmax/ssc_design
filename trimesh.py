@@ -263,7 +263,7 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 	im.save(outImage+".png")
 
 	svg = "<svg height=\""+str(SIZE)+"\" width=\""+str(SIZE)+"\">\n" + "<defs>\n" + svgGrad + "</defs>\n" + svgBG + svgPoly + "</svg>"
-	f = open(outImage + ".svg", "w")
+	f = open("svg_" + outImage + ".svg", "w")
 	f.write(svg)
 
 # MAIN
