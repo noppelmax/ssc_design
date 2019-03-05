@@ -95,7 +95,7 @@ def getBGColor(bgcolor):
 def buildMesh( inImage, dots):
 	newTris = []
 	tris = Delaunay(dots)
-
+	idx = 0
 	for simplex in tris.simplices:
 		x = np.average([int(dots[int(simplex[0])][0]),int(dots[int(simplex[1])][0]),int(dots[int(simplex[2])][0])])
 		y = np.average([int(dots[int(simplex[0])][1]),int(dots[int(simplex[1])][1]),int(dots[int(simplex[2])][1])])
@@ -105,7 +105,8 @@ def buildMesh( inImage, dots):
 			simplex = np.append(simplex,FG)
 		else:
 			simplex = np.append(simplex,BG)
-		newTris.append([int(simplex[0]), int(simplex[1]), int(simplex[2]), int(simplex[3])])
+		newTris.append([int(simplex[0]), int(simplex[1]), int(simplex[2]), int(simplex[3]), idx])
+		idx = idx + 1
 	return (dots,newTris)
 
 def getGradientLine(simplex,dots):
@@ -241,15 +242,14 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 if __name__ == "__main__":
 	try:
 
-		if True:
+		if False:
 			dots = generateDots(DOTS, SIZE)
 			(dots,tris) = buildMesh(INPUTIMAGE,dots)
-			np.savetxt("meshDot.dat", dots)
-			np.savetxt("meshTris.dat", tris)
+			np.savetxt("meshDot.dat", dots, fmt="%i")
+			np.savetxt("meshTris.dat", tris, fmt="%i")
 		else:
-			dots = np.loadtxt("meshDot.dat")
-			tris = np.loadtxt("meshTris.dat")
-		print(tris[0])
+			dots = np.loadtxt("meshDot.dat", dtype="int16")
+			tris = np.loadtxt("meshTris.dat", dtype="int16")
 
 		for fg in range(0,len(FGTHEMES)):
 			for bg in range(0,len(BGTHEMES)):
