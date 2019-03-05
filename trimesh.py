@@ -176,6 +176,34 @@ def getGradient(gradient, simplex, dots, c1, c2, c3, p):
 def getSVGTriangle(simplex, dots, gradient):
 	return "<polygon points=\"%d,%d %d,%d %d,%d\" style=\"fill:url(#grad%d),stroke-width:0\" />\n" % (dots[int(simplex[0])][0],dots[int(simplex[0])][1],dots[int(simplex[1])][0],dots[int(simplex[1])][1],dots[int(simplex[2])][0],dots[int(simplex[2])][1],gradient)
 
+def getSVGTextForMesh(simplex, dots):
+	idx = int(simplex[4])
+	x = np.average([int(dots[int(simplex[0])][0]),int(dots[int(simplex[1])][0]),int(dots[int(simplex[2])][0])])
+	y = np.average([int(dots[int(simplex[0])][1]),int(dots[int(simplex[1])][1]),int(dots[int(simplex[2])][1])])
+	y = y + 2
+	return "<text x=\"%d\" y=\"%d\" fill=\"black\" text-anchor=\"middle\" font-size=\"4px\">%d</text>" % (x,y,idx)
+
+
+def getSVGTriangleForMesh(simplex, dots):
+	if simplex[3] == 1:
+		g = "<polygon points=\"%d,%d %d,%d %d,%d\" stroke=\"blue\" fill=\"white\" />\n" % (dots[int(simplex[0])][0],dots[int(simplex[0])][1],dots[int(simplex[1])][0],dots[int(simplex[1])][1],dots[int(simplex[2])][0],dots[int(simplex[2])][1])
+	else:
+		g = "<polygon points=\"%d,%d %d,%d %d,%d\" stroke=\"blue\" fill=\"gray\" />\n" % (dots[int(simplex[0])][0],dots[int(simplex[0])][1],dots[int(simplex[1])][0],dots[int(simplex[1])][1],dots[int(simplex[2])][0],dots[int(simplex[2])][1])
+
+	return g
+
+def exportMesh(dots, tris):
+	svgPoly = ""
+	for simplex in tris:
+		svgPoly = svgPoly + getSVGTriangleForMesh(simplex, dots)
+	svgText = ""
+	for simplex in tris:
+		svgText = svgText + getSVGTextForMesh(simplex, dots)
+
+	svg = "<svg height=\""+str(SIZE)+"\" width=\""+str(SIZE)+"\">\n" + svgPoly + svgText + "</svg>"
+	f = open("mesh.svg", "w")
+	f.write(svg)
+
 def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, overlayImage = None, lineWidth=0):
 	canvas = (SIZE,SIZE)
 	svgGrad = ""
@@ -242,11 +270,12 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 if __name__ == "__main__":
 	try:
 
-		if False:
+		if True:
 			dots = generateDots(DOTS, SIZE)
 			(dots,tris) = buildMesh(INPUTIMAGE,dots)
 			np.savetxt("meshDot.dat", dots, fmt="%i")
 			np.savetxt("meshTris.dat", tris, fmt="%i")
+			exportMesh(dots,tris)
 		else:
 			dots = np.loadtxt("meshDot.dat", dtype="int16")
 			tris = np.loadtxt("meshTris.dat", dtype="int16")
