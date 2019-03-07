@@ -1,0 +1,89 @@
+\documentclass[a4paper]{article}
+\usepackage{blindtext}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{parskip}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+
+\usepackage[left=1.5cm,right=1.5cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{hyperref}
+
+\usepackage{courier}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true}
+
+\setlength{\parskip}{5pt}
+\setlength{\parindent}{0pt}
+
+\lstset{numbers=left,breaklines=true,frame=single,xleftmargin=2em}
+
+\include{metadata}
+
+\title{Export v2}
+\author{für SSC}
+
+\begin{document}
+\maketitle
+
+\section{Changes}
+\subsection{zu v1}
+\begin{itemize}
+  \item Fisch größer
+  \item Linie weniger balkenförmig, kurviger
+  \item Blau mit Pastelltönen wie beim Grün
+\end{itemize}
+
+
+\newcommand{\sty}[3]{%
+\pagebreak%
+\section*{#1}%
+\begin{figure}[htb]%
+    \centering%
+    \begin{minipage}[t]{0.45\linewidth}%
+        \centering%
+        \def\svgwidth{\columnwidth}%
+        \input{svg_result_anzug_shadow_#2_bg.pdf_tex}%
+        \caption{#2}%
+    \end{minipage}%
+    \hfill%
+    \begin{minipage}[t]{0.45\linewidth}%
+        \centering%
+        \def\svgwidth{\columnwidth}%
+        \input{svg_result_anzug_shadow_#3_bg.pdf_tex}%
+        \caption{#3}%
+    \end{minipage}%
+\end{figure}%
+\begin{figure}[htb]%
+    \centering%
+    \begin{minipage}[t]{0.45\linewidth}%
+        \centering%
+        \def\svgwidth{\columnwidth}%
+        \input{svg_result_hose_#2_bg.pdf_tex}%
+        \caption{#2}%
+    \end{minipage}%
+    \hfill%
+    \begin{minipage}[t]{0.45\linewidth}%
+        \centering%
+        \def\svgwidth{\columnwidth}%
+        \input{svg_result_hose_#3_bg.pdf_tex}%
+        \caption{#3}%
+    \end{minipage}%
+\end{figure}%
+}
+
+
+
+\sty{Feuer und Eis mit Schatten}{fire-black}{ice2-white}
+\sty{Grün mit Schatten}{darkgreen-black}{lightgreen-white}
+\sty{Blau mit Schatten}{ice2-black}{ice2-white}
+\sty{Totales Blau mit Schatten}{dblue-blue}{ice2-white}
+
+
+
+
+\end{document}

@@ -8,19 +8,18 @@ import math
 from scipy.spatial import Delaunay
 
 
-FGTHEMES = ["fire","ice","darkgreen","lightgreen","dblue"]
+FGTHEMES = ["fire","ice","darkgreen","lightgreen","dblue","ice2"]
 BGTHEMES = ["black_bg", "white_bg", "blue_bg"]
 
+PNGBUILD = False
 
 def printUsage():
-	exit("Usage: <outputimage> <inputimage> <ndots>")
+	exit("Usage: <inputimage> <ndots>")
 
 try:
 	if sys.argv[1] is None:
 		printUsage()
 	if sys.argv[2] is None:
-		printUsage()
-	if sys.argv[3] is None:
 		printUsage()
 
 except IndexError:
@@ -31,34 +30,20 @@ logging.basicConfig(format=FORMAT, level=logging.INFO)
 logger = logging.getLogger("main")
 logger.info("Starting!")
 
-OUTPUTIMAGE = sys.argv[1]
-IN = Image.open(sys.argv[2])
+IN = Image.open(sys.argv[1]+".png")
 INPUTIMAGE = IN.load()
 (SIZEX, SIZEY) = IN.size
 if(SIZEX != SIZEY):
 	logger.error("Quadratisches Bild bitte!")
 	exit(1)
 SIZE = SIZEY
-DOTS = int(sys.argv[3])
-OVERLAY = None
-OVERLAYIMAGE = None
+
+DOTS = int(sys.argv[2])
+
 COLORINDEX = 3
 FG = 1
 BG = 2
 
-OVERLAY_W = Image.open("hose_w.png")
-OVERLAYIMAGE_W = OVERLAY_W.load()
-(w,h) = OVERLAY_W.size
-if w != SIZE or h != SIZE:
-	logger.error("Die Masse des Overlays muessen dem des Inputbildes entsprechen. %d x %d pixel" % (SIZE,SIZE))
-	exit(1)
-
-OVERLAY_B = Image.open("hose_b.png")
-OVERLAYIMAGE_B = OVERLAY_B.load()
-(w,h) = OVERLAY_B.size
-if w != SIZE or h != SIZE:
-	logger.error("Die Masse des Overlays muessen dem des Inputbildes entsprechen. %d x %d pixel" % (SIZE,SIZE))
-	exit(1)
 
 LINEWIDTH = 0
 
@@ -201,11 +186,20 @@ def exportMesh(dots, tris):
 		svgText = svgText + getSVGTextForMesh(simplex, dots)
 
 	svg = "<svg height=\""+str(SIZE)+"\" width=\""+str(SIZE)+"\">\n" + svgPoly + svgText + "</svg>"
-	f = open("mesh.svg", "w")
+	f = open("mesh_"+sys.argv[1]+".svg", "w")
 	f.write(svg)
 
 def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, overlayImage = None, lineWidth=0):
 	canvas = (SIZE,SIZE)
+
+	overlay = Image.open(overlayImage)
+	overlayImg = overlay.load()
+	(w,h) = overlay.size
+	if w != SIZE or h != SIZE:
+		logger.error("Die Masse des Overlays muessen dem des Inputbildes entsprechen. %d x %d pixel" % (SIZE,SIZE))
+		exit(1)
+
+
 	svgGrad = ""
 	svgPoly = ""
 
@@ -247,10 +241,10 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 		# DRAWING the gaps
 		if bgcolor is 0:
 			c = (0,0,0,255)
-			svgBG = "<polygon points=\"0,0 %d,0 %d,%d 0,%d\" fill=\"rgb(0,0,0)\" />\n" % (SIZE,SIZE,SIZE,SIZE)
+			svgBG = "<polygon points=\"2,2 %d,2 %d,%d 2,%d\" fill=\"rgb(0,0,0)\" />\n" % (SIZE-2,SIZE-2,SIZE-2,SIZE-2)
 		else:
 			c = (255,255,255,255)
-			svgBG = "<polygon points=\"0,0 %d,0 %d,%d 0,%d\" fill=\"rgb(255,255,255)\" />\n" % (SIZE,SIZE,SIZE,SIZE)
+			svgBG = "<polygon points=\"2,2 %d,2 %d,%d 2,%d\" fill=\"rgb(255,255,255)\" />\n" % (SIZE-2,SIZE-2,SIZE-2,SIZE-2)
 
 		w = lineWidth
 		if w != 0:
@@ -258,11 +252,12 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 			draw.line([dots[int(simplex[0])][0],dots[int(simplex[0])][1],dots[int(simplex[2])][0],dots[int(simplex[2])][1]], width=w, fill=c)
 			draw.line([dots[int(simplex[2])][0],dots[int(simplex[2])][1],dots[int(simplex[1])][0],dots[int(simplex[1])][1]], width=w, fill=c)
 
-	if overlayImage is not None:
-		im.paste(overlayImage, (0,0), overlayImage)
+
+	im.paste(overlay, (0,0), overlay)
 	im.save(outImage+".png")
 
-	svg = "<svg height=\""+str(SIZE)+"\" width=\""+str(SIZE)+"\">\n" + "<defs>\n" + svgGrad + "</defs>\n" + svgBG + svgPoly + "</svg>"
+	svgImg = "<image xlink:href=\"%s\" height=\"%d\" width=\"%d\"/>" % ( (overlayImage), SIZE,SIZE)
+	svg = "<svg height=\""+str(SIZE)+"\" width=\""+str(SIZE)+"\">\n" + "<defs>\n" + svgGrad + "</defs>\n" + svgBG + svgPoly + svgImg + "</svg>"
 	f = open("svg_" + outImage + ".svg", "w")
 	f.write(svg)
 
@@ -270,22 +265,22 @@ def exportPic(outImage, tris, dots, fgcolor, bgcolor, size, monobg = False, over
 if __name__ == "__main__":
 	try:
 
-		if True:
+		if False:
 			dots = generateDots(DOTS, SIZE)
 			(dots,tris) = buildMesh(INPUTIMAGE,dots)
-			np.savetxt("meshDot.dat", dots, fmt="%i")
-			np.savetxt("meshTris.dat", tris, fmt="%i")
+			np.savetxt("meshDot_"+sys.argv[1]+".dat", dots, fmt="%i")
+			np.savetxt("meshTris_"+sys.argv[1]+".dat", tris, fmt="%i")
 			exportMesh(dots,tris)
 		else:
-			dots = np.loadtxt("meshDot.dat", dtype="int16")
-			tris = np.loadtxt("meshTris.dat", dtype="int16")
-
+			dots = np.loadtxt("meshDot_"+sys.argv[1]+".dat", dtype="int16")
+			tris = np.loadtxt("meshTris_"+sys.argv[1]+".dat", dtype="int16")
+			exportMesh(dots,tris)
 		for fg in range(0,len(FGTHEMES)):
 			for bg in range(0,len(BGTHEMES)):
 				if bg == 1:
-					exportPic(OUTPUTIMAGE + "_"+ str(fg) + "-" + str(bg), tris, dots, fg, bg, SIZE, overlayImage = OVERLAY_W, lineWidth=LINEWIDTH)
+					exportPic("result_"+sys.argv[1]+"_"+ str(FGTHEMES[fg]) + "-" + str(BGTHEMES[bg]), tris, dots, fg, bg, SIZE, overlayImage = sys.argv[1]+"_overlay_w.png", lineWidth=LINEWIDTH)
 				else:
-					exportPic(OUTPUTIMAGE + "_"+ str(fg) + "-" + str(bg), tris, dots, fg, bg, SIZE, overlayImage = OVERLAY_B, lineWidth=LINEWIDTH)
+					exportPic("result_"+sys.argv[1]+"_"+ str(FGTHEMES[fg]) + "-" + str(BGTHEMES[bg]), tris, dots, fg, bg, SIZE, overlayImage = sys.argv[1]+"_overlay_b.png", lineWidth=LINEWIDTH)
 
 
 
